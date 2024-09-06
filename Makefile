@@ -1,8 +1,4 @@
-CC = gcc
-OBJ = obj
-INCLDDE = include
-
-all: main.o tabela_hash.o lista.o
+all: main.o tabela_hash.o Set.o ArvoreAVL.o
 	gcc $^ -o main
 
 *.o: *.c

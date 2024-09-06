@@ -1,50 +1,50 @@
-#include "tabela_hash.h"
-#include "lista.h"
 #include <stdlib.h>
 #include <string.h>
+#include "tabela_hash.h"
+#include "Set.h"
 
 typedef struct tabela_hash {
-    int size;
-    lista **dados;
+    int tamanho;
+    Set **valores;
 } tabela_hash;
 
-int hash(char *chave, int size) {
+int hash(char *chave, int tamanho) {
     int valor = 7;
     for (int i = 0; i < strlen(chave); i++)
         valor = 31 * valor + (int)chave[i];
-    return ((valor & 0x7FFFFFFF) & 0x7FFFFFFF) % size;
+    return ((valor & 0x7FFFFFFF) & 0x7FFFFFFF) % tamanho;
 }
 
-tabela_hash* new_tabela_hash(int size) {
+tabela_hash* new_tabela_hash(int tamanho) {
     tabela_hash *t = (tabela_hash*)malloc(sizeof(tabela_hash));
     if (t) {
-        t->size = size;
-        t->dados = (lista**)malloc(sizeof(lista*) * size);
-        for (int i = 0; i < size; i++)
-            t->dados[i] = NULL;
+        t->tamanho = tamanho;
+        t->valores = (Set**)malloc(sizeof(Set*) * tamanho);
+        for (int i = 0; i < tamanho; i++)
+            t->valores[i] = NULL;
     }
     return t;
 }
 
 void free_tabela_hash(tabela_hash *t) {
     if (t) {
-        for (int i = 0; i < t->size; i++)
-            free_lista(t->dados[i]);
-        free(t->dados);
+        for (int i = 0; i < t->tamanho; i++)
+            liberaSet(t->valores[i]);
+        free(t->valores);
         free(t);
     }
 }
 
-void insere(tabela_hash *t, char *palavra, int rrn) {
+void inserir_tabela_hash(tabela_hash *t, char *chave, int valor) {
     if (!t) return;
-    int pos = hash(palavra, t->size);
-    if (t->dados[pos] == NULL)
-        t->dados[pos] = new_lista();
-    insere_lista(t->dados[pos], rrn);
+    int pos = hash(chave, t->tamanho);
+    if (!t->valores[pos])
+        t->valores[pos] = criaSet();
+    insereSet(t->valores[pos], valor);
 }
 
-int* busca(tabela_hash *t, char *palavra, int *tam) {
+Set* buscar_tabela_hash(tabela_hash *t, char *chave) {
     if (!t) return NULL;
-    int pos = hash(palavra, t->size);
-    return recuperar_dados(t->dados[pos], tam);
+    int pos = hash(chave, t->tamanho);
+    return t->valores[pos];
 }

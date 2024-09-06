@@ -1,13 +1,12 @@
 #ifndef TABELA_HASH_H_
 #define TABELA_HASH_H_
 
-#include "lista.h"
+#include "Set.h"
 
 /**
  * Tabela hash com encadeamento para colisões
- * (Se comporta como uma lista invertida)
+ * (Se comporta como um indice invertida)
  */
-
 typedef struct tabela_hash tabela_hash;
 
 /**
@@ -29,19 +28,19 @@ void free_tabela_hash(tabela_hash *t);
  * Insere um elemento na tabela
  * 
  * @param t Ponteiro para a tabela
- * @param palavra String usada para o índice/chave da tabela hash
- * @param rrn Inteiro a ser armazenado na tabela hash (lista invertida)
+ * @param chave String usada para calcular o índice da tabela hash
+ * @param valor Inteiro a ser armazenado na tabela hash (indice invertido)
  */
-void insere(tabela_hash *t, char *palavra, int rrn);
+void inserir_tabela_hash(tabela_hash *t, char *chave, int valor);
 
 /**
  * Busca o vetor de elementos associados a certa chave
  * 
  * @param t Ponteiro para a tabela
- * @param palavra String usada para o índice/chave da tabela hash
- * @param tam Ponteiro para um inteiro que armazena quantos elementos estão associados à chave
- * @return Vetor de elementos da lista
+ * @param chave String usada para o índice/chave da tabela hash
+ * @param tam Ponteiro para um inteiro que armazenará quantos elementos estão associados à chave
+ * @return Estrutura que contém os valores associados à chave
  */
-int* busca(tabela_hash *t, char *palavra, int *tam);
+Set* buscar_tabela_hash(tabela_hash *t, char *chave);
 
 #endif
