@@ -21,30 +21,30 @@
 void padronizar(char *str);
 
 /**
- * Função que lê o arquivo de dados, processa os tweets e insere os valores na tabela hash
+ * Função que lê o arquivo de dados, processa as postagens e insere os valores na tabela hash
  * 
- * @param qtd Quantidade de tweets a serem lidos (útil para testes), se qtd < 1, o arquivo completo será lido
- * @return Ponteiro para o índice já inicializado e armazenando os rrns de cada palavra
+ * @param qtd Quantidade de postagens a serem lidos (útil para testes), se qtd < 1, o arquivo completo será lido
+ * @return Ponteiro para o índice já inicializado e armazenando os rrns/offsets de cada palavra
  */
 tabela_hash* carregar_indice(int qtd);
 
 /**
- * Função que processa a busca do usuário e retorna o Set de tweets conforme tal busca
+ * Função que processa a busca do usuário e retorna o Set de postagens conforme tal busca
  * 
  * @param t Ponteiro para o índice dos dados
  * @param busca Paraâmetro de busca do usuário
- * @return Ponteiro para um Set que contém todos os offsets dos tweets com as palavras da busca
+ * @return Ponteiro para um Set que contém todos os offsets das postagens com as palavras da busca
  */
 Set* processar_busca(tabela_hash *t, char *busca);
 
 /**
- * Função auxiliar para recuperar apenas os offsets dos tweets que contem a palavra (evitando as colisões do hash)
+ * Função auxiliar para recuperar apenas os offsets das postagens que contem a palavra (evitando as colisões do hash)
  * 
- * @param offsets Ponteiro para o Set contendo os offsets dos tweets com o hash da palavra buscada
+ * @param offsets Ponteiro para o Set contendo os offsets das postagens com o hash da palavra buscada
  * @param palavra Palavra usada na busca
- * @return Ponteiro para um Set que contém apenas os offsets dos tweets válidos
+ * @return Ponteiro para um Set que contém apenas os offsets das postagens válidos
  */
-Set* validar_tweets(Set *offsets, char *palavra);
+Set* validar_postagens(Set *offsets, char *palavra);
 
 int main() {
     tabela_hash *idx = carregar_indice(1000); // Quantidade para testes
@@ -67,10 +67,10 @@ int main() {
             break;
         busca[strcspn(busca, "\n")] = '\0';
 
-        Set *offsets = processar_busca(idx, busca); // buscando offsets dos tweets que são compatíveis com a busca
+        Set *offsets = processar_busca(idx, busca); // buscando offsets das postagens que são compatíveis com a busca
 
         if (tamanhoSet(offsets) == 0) {
-            printf(">>>>> Nenhum tweet foi encontrado!\n");
+            printf(">>>>> Nenhuma postagem foi encontrada!\n");
             liberaSet(offsets);
             continue;
         }
@@ -81,22 +81,22 @@ int main() {
             exit(1);
         }
         
-        printf(">>>>> %d tweets encontrados:\n", tamanhoSet(offsets));
+        printf(">>>>> %d postagens encontradas:\n", tamanhoSet(offsets));
         for (beginSet(offsets); !endSet(offsets); nextSet(offsets)) {
             int offset;
             getItemSet(offsets, &offset);
 
-            // le o registro do tweet com o devido offset obtido da tabela
+            // le o registro da postagem com o devido offset obtido da tabela
             fseek(f, offset, SEEK_SET);
             char registro[500];
             fgets(registro, sizeof(registro), f);
 
-            // obtendo o tweet (mensagem, de fato) do registro
-            char *tweet = strtok(registro, ",");
-            tweet = strtok(NULL, ",");
-            tweet = strtok(NULL, ",");
+            // obtendo a postagem (conteúdo da mensagem, de fato) do registro
+            char *postagem = strtok(registro, ",");
+            postagem = strtok(NULL, ",");
+            postagem = strtok(NULL, ",");
 
-            printf("\n%s\n", tweet);
+            printf("\n%s\n", postagem);
             printf("=======================================\n");
         }
         
@@ -156,13 +156,13 @@ tabela_hash* carregar_indice(int qtd) {
         if (offset == 0) // ignorar cabeçalho do arquivo
             continue;
         
-        // obtendo o tweet (mensagem, de fato) do registro
-        char *tweet = strtok(registro, ",");
-        tweet = strtok(NULL, ",");
-        tweet = strtok(NULL, ",");
+        // obtendo a postagem (conteúdo da mensagem, de fato) do registro
+        char *postagem = strtok(registro, ",");
+        postagem = strtok(NULL, ",");
+        postagem = strtok(NULL, ",");
 
-        // separando cada palavra do tweet e adicionando no indice (tabela hash)
-        char *palavra = strtok(tweet, " ");
+        // separando cada palavra da postagem e adicionando no indice (tabela hash)
+        char *palavra = strtok(postagem, " ");
         while (palavra) {
             padronizar(palavra); // padroniza palavras com letras maiúsculas, pontuações e espaços
             inserir_tabela_hash(idx, palavra, offset);
@@ -177,7 +177,7 @@ tabela_hash* carregar_indice(int qtd) {
 }
 
 Set* processar_busca(tabela_hash *t, char *busca) {
-    Set *tweets = NULL;
+    Set *postagens = NULL;
     char palavras[2][50] = {0, 0};
 
     if (strstr(busca, " AND ")) {
@@ -186,17 +186,17 @@ Set* processar_busca(tabela_hash *t, char *busca) {
         padronizar(palavras[0]);
         padronizar(palavras[1]);
 
-        // buscando os tweets que realmente contém a primeira palavra da busca (podem haver colisões)
+        // buscando as postagens que realmente contém a primeira palavra da busca (já que podem haver colisões)
         Set *offsets1 = buscar_tabela_hash(t, palavras[0]);
-        Set *tweets_validos1 = validar_tweets(offsets1, palavras[0]);
+        Set *postagens_validas1 = validar_postagens(offsets1, palavras[0]);
 
-        // buscando os tweets que realmente contém a segunda palavra da busca (podem haver colisões)
+        // buscando as postagens que realmente contém a segunda palavra da busca (já que podem haver colisões)
         Set *offsets2 = buscar_tabela_hash(t, palavras[1]);
-        Set *tweets_validos2 = validar_tweets(offsets2, palavras[1]);
+        Set *postagens_validas2 = validar_postagens(offsets2, palavras[1]);
 
-        tweets = interseccaoSet(tweets_validos1, tweets_validos2);
-        liberaSet(tweets_validos1);
-        liberaSet(tweets_validos2);
+        postagens = interseccaoSet(postagens_validas1, postagens_validas2);
+        liberaSet(postagens_validas1);
+        liberaSet(postagens_validas2);
     }
     else if (strstr(busca, " OR ")) {
         strcpy(palavras[0], strtok(busca, " OR "));
@@ -204,56 +204,60 @@ Set* processar_busca(tabela_hash *t, char *busca) {
         padronizar(palavras[0]);
         padronizar(palavras[1]);
 
-        // buscando os tweets que realmente contém a primeira palavra da busca (podem haver colisões)
+        // buscando as postagens que realmente contém a primeira palavra da busca (já que podem haver colisões)
         Set *offsets1 = buscar_tabela_hash(t, palavras[0]);
-        Set *tweets_validos1 = validar_tweets(offsets1, palavras[0]);
+        Set *postagens_validas1 = validar_postagens(offsets1, palavras[0]);
 
-        // buscando os tweets que realmente contém a segunda palavra da busca (podem haver colisões)
+        // buscando as postagens que realmente contém a segunda palavra da busca (já quepodem haver colisões)
         Set *offsets2 = buscar_tabela_hash(t, palavras[1]);
-        Set *tweets_validos2 = validar_tweets(offsets2, palavras[1]);
+        Set *postagens_validas2 = validar_postagens(offsets2, palavras[1]);
 
-        tweets = uniaoSet(tweets_validos1, tweets_validos2);
-        liberaSet(tweets_validos1);
-        liberaSet(tweets_validos2);
+        postagens = uniaoSet(postagens_validas1, postagens_validas2);
+        liberaSet(postagens_validas1);
+        liberaSet(postagens_validas2);
     }
     else {
         strcpy(palavras[0], busca);
         padronizar(palavras[0]);
 
+        // buscando as postagens que realmente contém palavra da busca (já que podem haver colisões)
         Set *offsets = buscar_tabela_hash(t, palavras[0]);
-        Set *tweets_validos = validar_tweets(offsets, palavras[0]);
+        Set *postagens_validas = validar_postagens(offsets, palavras[0]);
 
-        tweets = tweets_validos;
+        postagens = postagens_validas;
 
     }
 
-    return tweets;
+    return postagens;
 }
 
-Set* validar_tweets(Set *offsets, char *palavra) {
+Set* validar_postagens(Set *offsets, char *palavra) {
     FILE *f = fopen("corpus.csv", "r");
     if (!f) {
         printf("Erro ao abrir o arquivo\n");
         exit(1);
     }
 
-    Set *tweets_validos = criaSet();
-    int offset;
+    Set *postagens_validas = criaSet();
 
     for (beginSet(offsets); !endSet(offsets); nextSet(offsets)) {
+        int offset;
         getItemSet(offsets, &offset);
+
+        // le o registro da postagem com o devido offset obtido da tabela
         fseek(f, offset, SEEK_SET);
         char registro[500];
         fgets(registro, sizeof(registro), f);
-        // obtendo o tweet (mensagem, de fato) do registro
-        char *tweet = strtok(registro, ",");
-        tweet = strtok(NULL, ",");
-        tweet = strtok(NULL, ",");
-        padronizar(tweet);
-        if (strstr(tweet, palavra))
-            insereSet(tweets_validos, offset);
+
+        // obtendo a postagem (conteúdo da mensagem, de fato) do registro
+        char *postagem = strtok(registro, ",");
+        postagem = strtok(NULL, ",");
+        postagem = strtok(NULL, ",");
+        padronizar(postagem);
+        if (strstr(postagem, palavra))
+            insereSet(postagens_validas, offset);
     }
 
     fclose(f);
-    return tweets_validos;
+    return postagens_validas;
 }
