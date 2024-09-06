@@ -71,10 +71,9 @@ int main() {
 
         if (tamanhoSet(offsets) == 0) {
             printf(">>>>> Nenhum tweet foi encontrado!\n");
+            liberaSet(offsets);
             continue;
         }
-
-        printf(">>>>> %d tweets encontrados:\n", tamanhoSet(offsets));
 
         FILE *f = fopen("corpus.csv", "r");
         if (!f) {
@@ -82,6 +81,7 @@ int main() {
             exit(1);
         }
         
+        printf(">>>>> %d tweets encontrados:\n", tamanhoSet(offsets));
         for (beginSet(offsets); !endSet(offsets); nextSet(offsets)) {
             int offset;
             getItemSet(offsets, &offset);
@@ -97,7 +97,7 @@ int main() {
             tweet = strtok(NULL, ",");
 
             printf("\n%s\n", tweet);
-            printf("==============================\n");
+            printf("=======================================\n");
         }
         
         printf("\n");
